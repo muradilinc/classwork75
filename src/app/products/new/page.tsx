@@ -7,14 +7,21 @@ import { ProductMutation } from '@/types';
 import axiosApi from '@/axiosApi';
 import { useRouter } from 'next/navigation';
 
-const Page = () => {
+const NewProductPage = () => {
   const router = useRouter();
   const mutation = useMutation({
     mutationFn: async (productData: ProductMutation) => {
-      await axiosApi.post('/products', {
-        ...productData,
-        price: parseFloat(productData.price),
-      });
+      const formData = new FormData();
+      formData.append('category', productData.category);
+      formData.append('title', productData.title);
+      formData.append('description', productData.description);
+      formData.append('price', productData.price);
+
+      if (productData.image) {
+        formData.append('image', productData.image);
+      }
+
+      await axiosApi.post('/products', formData);
     }
   });
 
@@ -31,4 +38,4 @@ const Page = () => {
   );
 };
 
-export default Page;
+export default NewProductPage;

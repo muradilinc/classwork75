@@ -1,8 +1,8 @@
-'use client'
+'use client';
 import React from 'react';
 import { Grid, Typography, Button, CircularProgress } from '@mui/material';
 import Link from 'next/link';
-import { QueryClient, useQuery } from '@tanstack/react-query';
+import { useQuery } from '@tanstack/react-query';
 import axiosApi from '@/axiosApi';
 import { Product } from '@/types';
 import ProductItem from '@/components/products/ProductItem/ProductItem';
@@ -22,10 +22,12 @@ export default function Home() {
   if (!isLoading && products){
     productsArea = products.map(product => (
       <ProductItem
-        key={product.id}
+        key={product._id}
         title={product.title}
         price={product.price}
-        id={product.id}
+        id={product._id}
+        image={product.image}
+        category={product.category ? product.category.title : ''}
       />
     ));
   }

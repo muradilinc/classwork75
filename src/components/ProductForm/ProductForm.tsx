@@ -1,9 +1,12 @@
 'use client';
 import React, { useState } from 'react';
-import { Grid, TextField } from '@mui/material';
-import { ProductMutation } from '@/types';
+import { CircularProgress, Grid, TextField, MenuItem} from '@mui/material';
+import { Category, ProductMutation } from '@/types';
 import { LoadingButton } from '@mui/lab';
 import SaveIcon from '@mui/icons-material/Save';
+import FileInput from '@/components/UI/FileInput/FileInput';
+import { useQuery } from '@tanstack/react-query';
+import axiosApi from '@/axiosApi';
 
 interface Props {
   onSubmit: (productMutation: ProductMutation) => void;
@@ -11,10 +14,19 @@ interface Props {
 }
 
 const ProductForm: React.FC<Props> = ({onSubmit, isLoading}) => {
+  const {data: categories, isLoading: categoriesLoading, isFetched} = useQuery({
+    queryKey: ['categories'],
+    queryFn: async () => {
+      const categoriesResponse = await axiosApi.get<Category[]>('/categories');
+      return categoriesResponse.data;
+    },
+  });
   const [state, setState] = useState<ProductMutation>({
+    category: '',
     title: '',
     price: '',
     description: '',
+    image: null,
   });
 
   const inputChangeHandler = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -30,9 +42,40 @@ const ProductForm: React.FC<Props> = ({onSubmit, isLoading}) => {
     onSubmit(state);
   };
 
+  const fileInputChangeHandler = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const {name, files} = event.target;
+    if (files){
+      setState(prevState => ({
+        ...prevState,
+        [name]: files[0],
+      }));
+    }
+  };
+
+  if (categoriesLoading && categories) {
+    return <CircularProgress/>;
+  }
+
+
   return (
     <form onSubmit={submitFormHandler}>
       <Grid container direction="column" spacing={2}>
+        <Grid item xs>
+          <TextField
+            select
+            id="category"
+            label="category"
+            value={state.category}
+            onChange={inputChangeHandler}
+            name="category"
+            required
+          >
+            <MenuItem value="" disabled> Please select a category</MenuItem>
+            {
+              categories && categories.map(category => <MenuItem key={category._id} value={category._id}>{category.title}</MenuItem>)
+            }
+          </TextField>
+        </Grid>
         <Grid item xs>
           <TextField
             id="title"
@@ -64,6 +107,13 @@ const ProductForm: React.FC<Props> = ({onSubmit, isLoading}) => {
             value={state.description}
             onChange={inputChangeHandler}
             required
+          />
+        </Grid>
+        <Grid item xs>
+          <FileInput
+            onChange={fileInputChangeHandler}
+            name="image"
+            label="Product image"
           />
         </Grid>
         <Grid item xs>
